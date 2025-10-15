@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 interface LoginPageProps {
   onLogin: () => void;
 }
-
+//hello
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -40,3 +40,4 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 };
 
 export default LoginPage;
+
