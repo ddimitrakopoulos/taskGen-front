@@ -38,8 +38,8 @@ jobs:
       - name: Get Azure Static Web Apps Deployment Token
         id: get_token
         run: |
-          APP_NAME="myStaticApp"           # Update with your Bicep-created app name
-          RESOURCE_GROUP="myResourceGroup" # Update with your Bicep-created resource group
+          APP_NAME="static-wapp-taskGen"           # Update with your Bicep-created app name
+          RESOURCE_GROUP="rg-taskGen-dev-weu" # Update with your Bicep-created resource group
 
           DEPLOY_TOKEN=$(az staticwebapp secrets list \
             --name $APP_NAME \
