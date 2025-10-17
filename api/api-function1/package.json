@@ -2,7 +2,7 @@
   "name": "api-function1",
   "version": "1.0.0",
   "description": "Azure Function returning a random number",
-  "main": "index.js",
+  "main": "Function1/index.js",
   "scripts": {
     "start": "func start"
   },
