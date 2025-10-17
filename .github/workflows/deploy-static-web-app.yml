@@ -1,112 +1,97 @@
-import React, { useState } from 'react';
+name: Deploy Vite + TypeScript App + Azure Functions
 
-interface LoginPageProps {
-  onLogin: () => void;
-}
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+jobs:
+  # --- Frontend: Static Web App ---
+  build_and_deploy_frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-  const [box1Data, setBox1Data] = useState<string>('');
-  const [box2Data, setBox2Data] = useState<string>('');
-  const [loading1, setLoading1] = useState(false);
-  const [loading2, setLoading2] = useState(false);
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (username && password) {
-      onLogin();
-    }
-  };
+      - run: npm ci
+      - run: npm run build
 
-  // Improved fetch with error details
-  const handleBox1Fetch = async () => {
-    setLoading1(true);
-    setBox1Data('');
-    try {
-      const res = await fetch('https://func-crud-taskGen.azurewebsites.net/api/api-function1');
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} - ${res.statusText}`);
-      }
-      const data = await res.json();
-      setBox1Data(JSON.stringify(data, null, 2));
-    } catch (err: any) {
-      console.error('Error fetching Box 1:', err);
-      setBox1Data(`Error fetching Box 1:\n${err.message}`);
-    } finally {
-      setLoading1(false);
-    }
-  };
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-  const handleBox2Fetch = async () => {
-    setLoading2(true);
-    setBox2Data('');
-    try {
-      const res = await fetch('https://func-login-taskGen.azurewebsites.net/api/api-function2');
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} - ${res.statusText}`);
-      }
-      const data = await res.json();
-      setBox2Data(JSON.stringify(data, null, 2));
-    } catch (err: any) {
-      console.error('Error fetching Box 2:', err);
-      setBox2Data(`Error fetching Box 2:\n${err.message}`);
-    } finally {
-      setLoading2(false);
-    }
-  };
+      - name: Get Static Web App token
+        id: get_token
+        run: |
+          APP_NAME="static-wapp-taskGen"
+          RESOURCE_GROUP="rg-taskGen-dev-weu"
+          DEPLOY_TOKEN=$(az staticwebapp secrets list \
+            --name $APP_NAME \
+            --resource-group $RESOURCE_GROUP \
+            --query "properties.apiKey" -o tsv)
+          echo "deploy_token=$DEPLOY_TOKEN" >> $GITHUB_OUTPUT
 
-  return (
-    <div style={{ maxWidth: 400, margin: '50px auto', padding: 20, border: '1px solid #ccc', borderRadius: 8 }}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-          style={{ width: '100%', marginBottom: 10 }}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          style={{ width: '100%', marginBottom: 10 }}
-        />
-        <button type="submit" style={{ width: '100%' }}>Login</button>
-      </form>
+      - name: Deploy Static Web App
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ steps.get_token.outputs.deploy_token }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "/"
+          output_location: "dist"
 
-      <hr style={{ margin: '20px 0' }} />
+  # --- Backend: Function App 1 ---
+  deploy_function1:
+    runs-on: ubuntu-latest
+    needs: build_and_deploy_frontend
+    steps:
+      - uses: actions/checkout@v3
 
-      {/* Box 1 */}
-      <div style={{ marginBottom: 20 }}>
-        <button onClick={handleBox1Fetch} disabled={loading1} style={{ width: '100%', marginBottom: 10 }}>
-          {loading1 ? 'Loading Box 1...' : 'Fetch Box 1 Data'}
-        </button>
-        <textarea
-          readOnly
-          value={box1Data}
-          placeholder="Box 1 data will appear here"
-          style={{ width: '100%', height: 100 }}
-        />
-      </div>
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-      {/* Box 2 */}
-      <div>
-        <button onClick={handleBox2Fetch} disabled={loading2} style={{ width: '100%', marginBottom: 10 }}>
-          {loading2 ? 'Loading Box 2...' : 'Fetch Box 2 Data'}
-        </button>
-        <textarea
-          readOnly
-          value={box2Data}
-          placeholder="Box 2 data will appear here"
-          style={{ width: '100%', height: 100 }}
-        />
-      </div>
-    </div>
-  );
-};
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-export default LoginPage;
+      - name: Deploy Function App 1 (no publish profile)
+        uses: azure/functions-action@v1
+        with:
+          app-name: "func-crud-taskGen"             # Function App name
+          package: "./api-function1"                # Folder with index.js + function.json
+          publish-profile: ""                       # Not used
+          respect-pom-xml: false                    # Avoid auto Java build detection
+          scm-do-build-during-deployment: true      # Force build if needed
+
+
+  # --- Backend: Function App 2 ---
+  deploy_function2:
+    runs-on: ubuntu-latest
+    needs: build_and_deploy_frontend
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Function App 2 (no publish profile)
+        uses: azure/functions-action@v1
+        with:
+          app-name: "func-login-taskGen"
+          package: "./api-function2"
+          scm-do-build-during-deployment: true
