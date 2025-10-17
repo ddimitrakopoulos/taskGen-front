@@ -25,7 +25,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     setLoading1(true);
     setBox1Data('');
     try {
-      const res = await fetch('https://func-crud-taskGen.azurewebsites.net/api/api-function1');
+      const res = await fetch('https://func-crud-taskgen.azurewebsites.net/api/api-function1');
       if (!res.ok) {
         throw new Error(`HTTP ${res.status} - ${res.statusText}`);
       }
@@ -43,7 +43,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     setLoading2(true);
     setBox2Data('');
     try {
-      const res = await fetch('https://func-login-taskGen.azurewebsites.net/api/api-function2');
+      const res = await fetch('https://func-login-taskgen.azurewebsites.net/api/api-function2');
       if (!res.ok) {
         throw new Error(`HTTP ${res.status} - ${res.statusText}`);
       }
