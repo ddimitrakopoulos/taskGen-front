@@ -66,7 +66,7 @@ jobs:
         uses: azure/functions-action@v1
         with:
           app-name: "func-crud-taskGen"             # Function App name
-          package: "./api-function1"                # Folder with index.js + function.json
+          package: "./api/api-function1"                # Folder with index.js + function.json
           publish-profile: ""                       # Not used
           respect-pom-xml: false                    # Avoid auto Java build detection
           scm-do-build-during-deployment: true      # Force build if needed
@@ -93,5 +93,5 @@ jobs:
         uses: azure/functions-action@v1
         with:
           app-name: "func-login-taskGen"
-          package: "./api-function2"
+          package: "./api/api-function2"
           scm-do-build-during-deployment: true
