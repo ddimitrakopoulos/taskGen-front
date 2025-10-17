@@ -24,7 +24,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const handleBox1Fetch = async () => {
     setLoading1(true);
     try {
-      const res = await fetch('https://jsonplaceholder.typicode.com/posts/1');
+      const res = await fetch('https://func-crud-taskGen.azurewebsites.net/api/function1');
       const data = await res.json();
       setBox1Data(JSON.stringify(data, null, 2));
     } catch (error) {
@@ -38,7 +38,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const handleBox2Fetch = async () => {
     setLoading2(true);
     try {
-      const res = await fetch('https://jsonplaceholder.typicode.com/users/1');
+      const res = await fetch('https://func-login-taskGen.azurewebsites.net/api/function2');
       const data = await res.json();
       setBox2Data(JSON.stringify(data, null, 2));
     } catch (error) {
