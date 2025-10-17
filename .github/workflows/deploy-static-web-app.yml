@@ -62,15 +62,12 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy Function App 1 (no publish profile)
-        uses: azure/functions-action@v1
+      - name: Deploy CRUD Function App
+        uses: Azure/functions-action@v1
         with:
-          app-name: "func-crud-taskGen"             # Function App name
-          package: "./api/api-function1"                # Folder with index.js + function.json
-          publish-profile: ""                       # Not used
-          respect-pom-xml: false                    # Avoid auto Java build detection
-          scm-do-build-during-deployment: true      # Force build if needed
-
+          app-name: "func-crud-taskGen"
+          package: "./api/api-function1"   # Points to the correct folder
+          scm-do-build-during-deployment: true
 
   # --- Backend: Function App 2 ---
   deploy_function2:
@@ -89,9 +86,9 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy Function App 2 (no publish profile)
-        uses: azure/functions-action@v1
+      - name: Deploy Login Function App
+        uses: Azure/functions-action@v1
         with:
           app-name: "func-login-taskGen"
-          package: "./api/api-function2"
+          package: "./api/api-function2"   # Correct folder
           scm-do-build-during-deployment: true
