@@ -20,29 +20,38 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     }
   };
 
-  // Example API call for Box 1
+  // Improved fetch with error details
   const handleBox1Fetch = async () => {
     setLoading1(true);
+    setBox1Data('');
     try {
       const res = await fetch('https://func-crud-taskGen.azurewebsites.net/api/api-function1');
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+      }
       const data = await res.json();
       setBox1Data(JSON.stringify(data, null, 2));
-    } catch (error) {
-      setBox1Data('Error fetching data.');
+    } catch (err: any) {
+      console.error('Error fetching Box 1:', err);
+      setBox1Data(`Error fetching Box 1:\n${err.message}`);
     } finally {
       setLoading1(false);
     }
   };
 
-  // Example API call for Box 2
   const handleBox2Fetch = async () => {
     setLoading2(true);
+    setBox2Data('');
     try {
       const res = await fetch('https://func-login-taskGen.azurewebsites.net/api/api-function2');
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+      }
       const data = await res.json();
       setBox2Data(JSON.stringify(data, null, 2));
-    } catch (error) {
-      setBox2Data('Error fetching data.');
+    } catch (err: any) {
+      console.error('Error fetching Box 2:', err);
+      setBox2Data(`Error fetching Box 2:\n${err.message}`);
     } finally {
       setLoading2(false);
     }
