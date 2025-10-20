@@ -1,4 +1,4 @@
-name: Deploy Monolithic Vite + TypeScript App + APIs
+name: Deploy Monolithic Vite + Node Backend
 
 on:
   push:
@@ -7,40 +7,38 @@ on:
   workflow_dispatch:
 
 jobs:
-  build_and_deploy_app:
+  build_and_deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout code
+      # 1️⃣ Checkout the repo
       - uses: actions/checkout@v3
 
-      # 2️⃣ Setup Node.js (Vite requires 20.19+ or >=22.12)
+      # 2️⃣ Setup Node.js 22
       - uses: actions/setup-node@v3
         with:
           node-version: 22
 
-      # 3️⃣ Build Frontend
-      - name: Install & Build Frontend
+      # 3️⃣ Install frontend dependencies
+      - name: Install Frontend Dependencies
         run: |
           cd frontend
           npm ci
+
+      # 4️⃣ Build frontend
+      - name: Build Frontend
+        run: |
+          cd frontend
           npm run build
 
-      # 4️⃣ Build Backend
-      - name: Install & Build Backend
-        run: |
-          cd endpoints
-          npm ci
-          npm run build || echo "No build script, skipping"
-
       # 5️⃣ Prepare deployment package
-      - name: Prepare deployment package
+      - name: Prepare Deployment Package
         run: |
           rm -rf deploy
           mkdir deploy
           # Copy frontend build
           cp -r frontend/dist/* deploy/
-          # Copy backend compiled code
+          # Copy backend code (both folders)
           cp -r endpoints/* deploy/
           # Remove dev dependencies if any
           rm -rf deploy/node_modules
@@ -53,8 +51,8 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # 7️⃣ Deploy to App Service
-      - name: Deploy to Azure App Service
+      # 7️⃣ Deploy to Azure App Service
+      - name: Deploy to App Service
         uses: azure/webapps-deploy@v2
         with:
           app-name: "app-service-taskGen-dev"
