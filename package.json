@@ -6,7 +6,9 @@
     "build": "cd frontend && npm run build && cd ../endpoints && npm run build || echo 'skip backend build'"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "22": "^0.0.0",
+    "express": "^4.21.2",
+    "vite": "^6.4.1"
   },
   "description": "",
   "main": "server.js",
