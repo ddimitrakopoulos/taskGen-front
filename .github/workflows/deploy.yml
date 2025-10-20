@@ -1,0 +1,60 @@
+name: Deploy Monolithic Vite + TypeScript App + APIs
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy_app:
+    runs-on: ubuntu-latest
+    steps:
+      # 1️⃣ Checkout code
+      - uses: actions/checkout@v3
+
+      # 2️⃣ Setup Node.js
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      # 3️⃣ Install dependencies for frontend
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      # 4️⃣ Build frontend
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+      # 5️⃣ Install dependencies for backend
+      - name: Install backend dependencies
+        run: |
+          cd endpoints
+          npm ci
+
+      # 6️⃣ Build backend if needed (TypeScript compile)
+      - name: Build backend
+        run: |
+          cd endpoints
+          npm run build || echo "No build script, skipping"
+
+      # 7️⃣ Azure Login
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # 8️⃣ Deploy to App Service
+      - name: Deploy to App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: "app-service-taskGen-dev"
+          slot-name: "production"
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: |
+            ./frontend/dist
+            ./endpoints
