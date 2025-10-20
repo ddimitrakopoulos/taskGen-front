@@ -1,4 +1,4 @@
-name: Deploy Monolithic Vite + Node Backend
+name: Deploy Monolithic Vite + Node Backend (Dynamic)
 
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout your repo
+      # 1️⃣ Checkout the repo
       - uses: actions/checkout@v3
 
       # 2️⃣ Setup Node.js 22
@@ -36,43 +36,41 @@ jobs:
         run: |
           rm -rf deploy
           mkdir deploy
-          # Copy frontend build
+          # Copy frontend build output
           cp -r frontend/dist/* deploy/
-          # Copy backend code (both folders)
+          # Copy backend code (your API folders inside endpoints)
           cp -r endpoints/* deploy/
-          # Remove dev dependencies
-          rm -rf deploy/node_modules
+          # Install production dependencies
           cd deploy
-          npm ci --production
+          npm ci --omit=dev
+          cd ..
 
-      # 6️⃣ Login to Azure using the service principal
+      # 6️⃣ Azure Login using Service Principal
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # 7️⃣ Configure startup command (so your Node backend runs)
-      - name: Configure startup command
+      # 7️⃣ Deploy to Azure dynamically (no publish profile)
+      - name: Deploy to Azure App Service
         run: |
-          az webapp config set \
-            --name app-service-taskGen-dev \
-            --resource-group rg-taskGen-dev-weu \
-            --startup-file "npm start"
+          RESOURCE_GROUP="rg-taskGen-dev-weu"
+          APP_NAME="app-service-taskGen-dev"
 
-      # 8️⃣ Get publish profile from Azure dynamically
-      - name: Get Publish Profile
-        id: get_profile
+          echo "🔹 Zipping deployment package..."
+          zip -r deploy.zip deploy
+
+          echo "🚀 Deploying to Azure App Service..."
+          az webapp deploy \
+            --resource-group $RESOURCE_GROUP \
+            --name $APP_NAME \
+            --src-path deploy.zip \
+            --type zip
+
+      # 8️⃣ (Optional) Verify deployment status
+      - name: Verify Deployment
         run: |
           APP_NAME="app-service-taskGen-dev"
-          az webapp deployment list-publishing-profiles \
-            --name $APP_NAME \
-            --resource-group rg-taskGen-dev-weu \
-            --xml > publishProfile.xml
-
-      # 9️⃣ Deploy using the downloaded publish profile
-      - name: Deploy to Azure App Service
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: "app-service-taskGen-dev"
-          publish-profile: publishProfile.xml
-          package: ./deploy
+          RESOURCE_GROUP="rg-taskGen-dev-weu"
+          echo "🔍 Checking deployment logs..."
+          az webapp log tail --name $APP_NAME --resource-group $RESOURCE_GROUP --timeout 10
