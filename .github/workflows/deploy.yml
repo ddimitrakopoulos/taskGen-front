@@ -1,4 +1,4 @@
-name: Deploy Monolithic Vite + Node Backend (Dynamic)
+name: Deploy Monolithic Vite + Node Backend
 
 on:
   push:
@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout the repo
+      # 1️⃣ Checkout repo
       - uses: actions/checkout@v3
 
-      # 2️⃣ Setup Node.js 22
+      # 2️⃣ Setup Node.js
       - uses: actions/setup-node@v3
         with:
           node-version: 22
@@ -36,41 +36,56 @@ jobs:
         run: |
           rm -rf deploy
           mkdir deploy
-          # Copy frontend build output
+          # Copy frontend build
           cp -r frontend/dist/* deploy/
-          # Copy backend code (your API folders inside endpoints)
+          # Copy backend code
           cp -r endpoints/* deploy/
-          # Install production dependencies
+          # Copy root server.js
+          cp server.js deploy/
+          # Remove dev dependencies if any
+          rm -rf deploy/node_modules
           cd deploy
-          npm ci --omit=dev
-          cd ..
+          # Initialize minimal package.json if not present
+          npm init -y
+          # Install runtime dependencies
+          npm install express
 
-      # 6️⃣ Azure Login using Service Principal
+      # 6️⃣ Azure Login
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # 7️⃣ Deploy to Azure dynamically (no publish profile)
+      # 7️⃣ Deploy to Azure App Service using zip deployment
       - name: Deploy to Azure App Service
         run: |
-          RESOURCE_GROUP="rg-taskGen-dev-weu"
           APP_NAME="app-service-taskGen-dev"
+          RESOURCE_GROUP="rg-taskGen-dev-weu"
 
-          echo "🔹 Zipping deployment package..."
-          zip -r deploy.zip deploy
+          # Zip deployment package
+          zip -r deploy.zip .
 
-          echo "🚀 Deploying to Azure App Service..."
-          az webapp deploy \
+          # Deploy to Azure
+          az webapp deployment source config-zip \
             --resource-group $RESOURCE_GROUP \
             --name $APP_NAME \
-            --src-path deploy.zip \
-            --type zip
+            --src deploy.zip
 
-      # 8️⃣ (Optional) Verify deployment status
-      - name: Verify Deployment
+      # 8️⃣ Set startup command for Node.js
+      - name: Configure Startup Command
         run: |
           APP_NAME="app-service-taskGen-dev"
           RESOURCE_GROUP="rg-taskGen-dev-weu"
-          echo "🔍 Checking deployment logs..."
-          az webapp log tail --name $APP_NAME --resource-group $RESOURCE_GROUP --timeout 10
+          az webapp config set \
+            --resource-group $RESOURCE_GROUP \
+            --name $APP_NAME \
+            --startup-file "node server.js"
+
+      # 9️⃣ Restart App Service
+      - name: Restart App Service
+        run: |
+          APP_NAME="app-service-taskGen-dev"
+          RESOURCE_GROUP="rg-taskGen-dev-weu"
+          az webapp restart \
+            --resource-group $RESOURCE_GROUP \
+            --name $APP_NAME
