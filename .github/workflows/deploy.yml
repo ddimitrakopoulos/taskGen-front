@@ -11,37 +11,47 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout your repo
       - uses: actions/checkout@v3
 
+      # 2️⃣ Setup Node.js 22
       - uses: actions/setup-node@v3
         with:
           node-version: 22
 
+      # 3️⃣ Install frontend dependencies
       - name: Install Frontend Dependencies
         run: |
           cd frontend
           npm ci
 
+      # 4️⃣ Build frontend
       - name: Build Frontend
         run: |
           cd frontend
           npm run build
 
+      # 5️⃣ Prepare deployment package
       - name: Prepare Deployment Package
         run: |
           rm -rf deploy
           mkdir deploy
+          # Copy frontend build
           cp -r frontend/dist/* deploy/
+          # Copy backend code (both folders)
           cp -r endpoints/* deploy/
+          # Remove dev dependencies
           rm -rf deploy/node_modules
           cd deploy
           npm ci --production
 
+      # 6️⃣ Login to Azure using the service principal
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      # 7️⃣ Configure startup command (so your Node backend runs)
       - name: Configure startup command
         run: |
           az webapp config set \
@@ -49,7 +59,7 @@ jobs:
             --resource-group rg-taskGen-dev-weu \
             --startup-file "npm start"
 
-      # 7️⃣ Get publish profile XML from Azure
+      # 8️⃣ Get publish profile from Azure dynamically
       - name: Get Publish Profile
         id: get_profile
         run: |
@@ -58,12 +68,11 @@ jobs:
             --name $APP_NAME \
             --resource-group rg-taskGen-dev-weu \
             --xml > publishProfile.xml
-          echo "publishProfilePath=publishProfile.xml" >> $GITHUB_OUTPUT
 
-      # 8️⃣ Deploy to Azure App Service using fetched profile
+      # 9️⃣ Deploy using the downloaded publish profile
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
         with:
           app-name: "app-service-taskGen-dev"
-          publish-profile: ${{ steps.get_profile.outputs.publishProfilePath }}
+          publish-profile: publishProfile.xml
           package: ./deploy
