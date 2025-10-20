@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: 18
 
-      # 3️⃣ Install dependencies for frontend
+      # 3️⃣ Install frontend dependencies
       - name: Install frontend dependencies
         run: |
           cd frontend
@@ -30,31 +30,42 @@ jobs:
           cd frontend
           npm run build
 
-      # 5️⃣ Install dependencies for backend
+      # 5️⃣ Install backend dependencies
       - name: Install backend dependencies
         run: |
           cd endpoints
           npm ci
 
-      # 6️⃣ Build backend if needed (TypeScript compile)
+      # 6️⃣ Build backend
       - name: Build backend
         run: |
           cd endpoints
           npm run build || echo "No build script, skipping"
 
-      # 7️⃣ Azure Login
+      # 7️⃣ Prepare deployment package
+      - name: Prepare deployment package
+        run: |
+          mkdir deploy
+          # Copy frontend build
+          cp -r frontend/dist/* deploy/
+          # Copy backend compiled code
+          cp -r endpoints/* deploy/
+          # Optional: Remove dev files from backend if needed
+          rm -rf deploy/node_modules
+          cd deploy
+          npm ci --production
+
+      # 8️⃣ Azure Login
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # 8️⃣ Deploy to App Service
+      # 9️⃣ Deploy to App Service
       - name: Deploy to App Service
         uses: azure/webapps-deploy@v2
         with:
           app-name: "app-service-taskGen-dev"
           slot-name: "production"
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: |
-            ./frontend/dist
-            ./endpoints
+          package: ./deploy
