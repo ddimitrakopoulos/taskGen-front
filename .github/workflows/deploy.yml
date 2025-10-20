@@ -40,21 +40,32 @@ jobs:
           cp -r frontend/dist/* deploy/
           # Copy backend code (both folders)
           cp -r endpoints/* deploy/
-          # Remove dev dependencies if any
+          # Remove dev dependencies
           rm -rf deploy/node_modules
           cd deploy
           npm ci --production
 
-      # 6️⃣ Azure Login
+      # 6️⃣ Azure Login (service principal)
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # 7️⃣ Deploy to Azure App Service
-      - name: Deploy to App Service
+      # 7️⃣ Get publish profile XML from Azure
+      - name: Get Publish Profile
+        id: get_profile
+        run: |
+          APP_NAME="app-service-taskGen-dev"
+          az webapp deployment list-publishing-profiles \
+            --name $APP_NAME \
+            --resource-group rg-taskGen-dev-weu \
+            --xml > publishProfile.xml
+          echo "publishProfilePath=publishProfile.xml" >> $GITHUB_OUTPUT
+
+      # 8️⃣ Deploy to Azure App Service using fetched profile
+      - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
         with:
           app-name: "app-service-taskGen-dev"
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          publish-profile: ${{ steps.get_profile.outputs.publishProfilePath }}
           package: ./deploy
