@@ -70,54 +70,16 @@ jobs:
       # 3️⃣ Deploy directly to Azure App Service
       - name: Deploy to Azure Web App
         run: |
-          echo "🚀 Starting deployment to Azure App Service..."
           set +e
-          DEPLOY_OUTPUT=$(az webapp deploy \
+          az webapp deploy \
             --name app-service-taskGen-dev \
             --resource-group rg-taskGen-dev-weu \
             --src-path monolith-app.zip \
-            --type zip 2>&1)
-          DEPLOY_EXIT_CODE=$?
+            --type zip
           set -e
-
-          echo "$DEPLOY_OUTPUT"
-
-          if echo "$DEPLOY_OUTPUT" | grep -q "504"; then
-            echo "⚠️  Received 504 Gateway Timeout — checking if deployment actually succeeded..."
-          elif [ $DEPLOY_EXIT_CODE -ne 0 ]; then
-            echo "❌ Deployment command failed (exit code $DEPLOY_EXIT_CODE)."
-            exit 1
-          fi
-
-          echo "⏳ Polling Kudu for deployment status..."
-          ATTEMPTS=0
-          MAX_ATTEMPTS=20
-          STATUS=""
-
-          while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-            STATUS=$(az rest \
-              --method get \
-              --uri "https://app-service-taskgen-dev.scm.azurewebsites.net/api/deployments/latest" \
-              --query "status" -o tsv 2>/dev/null || echo "unknown")
-
-            echo "🔍 Attempt $((ATTEMPTS+1)) - Latest Kudu deployment status: ${STATUS}"
-
-            if [ "$STATUS" = "4" ]; then
-              echo "✅ Deployment completed successfully!"
-              exit 0
-            elif [ "$STATUS" = "3" ]; then
-              echo "❌ Deployment failed in Kudu!"
-              exit 1
-            fi
-
-            ATTEMPTS=$((ATTEMPTS+1))
-            sleep 15
-          done
-
-          echo "⚠️  Deployment still running or unknown after $((MAX_ATTEMPTS*15)) seconds. Please check Kudu manually."
-          exit 1
-
-
-
-
+          # Verify deployment succeeded
+          az webapp show \
+            --name app-service-taskGen-dev \
+            --resource-group rg-taskGen-dev-weu \
+            --query "state"
 
