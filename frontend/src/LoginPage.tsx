@@ -13,12 +13,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [loading1, setLoading1] = useState(false);
   const [loading2, setLoading2] = useState(false);
 
-  // Box 3 state
-  const [box3Username, setBox3Username] = useState('');
-  const [box3Password, setBox3Password] = useState('');
-  const [box3Data, setBox3Data] = useState<string>('');
-  const [loading3, setLoading3] = useState(false);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (username && password) {
@@ -26,12 +20,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     }
   };
 
+  // Improved fetch with error details
   const handleBox1Fetch = async () => {
     setLoading1(true);
     setBox1Data('');
     try {
       const res = await fetch('/api1');
-      if (!res.ok) throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+      }
       const data = await res.json();
       setBox1Data(JSON.stringify(data, null, 2));
     } catch (err: any) {
@@ -47,7 +44,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     setBox2Data('');
     try {
       const res = await fetch('/api2');
-      if (!res.ok) throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+      }
       const data = await res.json();
       setBox2Data(JSON.stringify(data, null, 2));
     } catch (err: any) {
@@ -55,26 +54,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       setBox2Data(`Error fetching Box 2:\n${err.message}`);
     } finally {
       setLoading2(false);
-    }
-  };
-
-  // New Box 3 fetch (validate username/password)
-  const handleBox3Validate = async () => {
-    setLoading3(true);
-    setBox3Data('');
-    try {
-      const res = await fetch('/validate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: box3Username, password: box3Password }),
-      });
-      const data = await res.json();
-      setBox3Data(JSON.stringify(data, null, 2));
-    } catch (err: any) {
-      console.error('Error validating credentials:', err);
-      setBox3Data(`Error validating credentials:\n${err.message}`);
-    } finally {
-      setLoading3(false);
     }
   };
 
@@ -115,7 +94,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       </div>
 
       {/* Box 2 */}
-      <div style={{ marginBottom: 20 }}>
+      <div>
         <button onClick={handleBox2Fetch} disabled={loading2} style={{ width: '100%', marginBottom: 10 }}>
           {loading2 ? 'Loading Box 2...' : 'Fetch Box 2 Data'}
         </button>
@@ -123,33 +102,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           readOnly
           value={box2Data}
           placeholder="Box 2 data will appear here"
-          style={{ width: '100%', height: 100 }}
-        />
-      </div>
-
-      {/* Box 3 (Validate) */}
-      <div>
-        <input
-          type="text"
-          placeholder="Username"
-          value={box3Username}
-          onChange={e => setBox3Username(e.target.value)}
-          style={{ width: '100%', marginBottom: 10 }}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={box3Password}
-          onChange={e => setBox3Password(e.target.value)}
-          style={{ width: '100%', marginBottom: 10 }}
-        />
-        <button onClick={handleBox3Validate} disabled={loading3} style={{ width: '100%', marginBottom: 10 }}>
-          {loading3 ? 'Validating...' : 'Validate Credentials'}
-        </button>
-        <textarea
-          readOnly
-          value={box3Data}
-          placeholder="Validation result will appear here"
           style={{ width: '100%', height: 100 }}
         />
       </div>
