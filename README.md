@@ -1,4 +1,4 @@
-# tasGen-front 
+# taskGen-front 
 taskGen-front is a very simple front-end app used for testing another iac project. 
 This repo has the typescript code and the github actions for automatic deployement.
 
