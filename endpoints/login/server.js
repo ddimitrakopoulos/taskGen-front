@@ -25,10 +25,6 @@ router.post("/", async (req, res) => {
   try {
     const { username, password } = req.body ?? {};
 
-    if (typeof username !== "string" || typeof password !== "string") {
-      return res.status(400).json({ error: "username and password are required as strings" });
-    }
-
     // Get the user's password from Key Vault
     let userSecret;
     try {
@@ -59,3 +55,4 @@ router.post("/", async (req, res) => {
 });
 
 module.exports = router;
+
