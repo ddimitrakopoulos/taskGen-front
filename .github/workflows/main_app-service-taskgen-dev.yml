@@ -75,13 +75,16 @@ jobs:
             --name app-service-taskGen-dev \
             --resource-group rg-taskGen-dev-weu \
             --src-path monolith-app.zip \
-            --type zip
+            --type zip \
+            --startup-file startup.sh
+
           set -e
           # Verify deployment succeeded
           az webapp show \
             --name app-service-taskGen-dev \
             --resource-group rg-taskGen-dev-weu \
             --query "state"
+
 
 
 
