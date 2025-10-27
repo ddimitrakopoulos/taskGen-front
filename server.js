@@ -1,22 +1,20 @@
 // server.js
 const express = require("express");
-const path = require("path");
-
-const api_login = require("./endpoints/login/server.js");
-const api_table = require("./endpoints/table/server.js");
+const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
+const { DefaultAzureCredential } = require("@azure/identity");
+const { SecretClient } = require("@azure/keyvault-secrets");
+const loginRouter = require("./routes/login");
 
 const app = express();
+const port = process.env.PORT || 8080;
 
-app.use(express.static(path.join(__dirname, "frontend/dist")));
+// Needed to parse JSON bodies
+app.use(express.json());
 
-app.use("/api/login", api_login);
-app.use("/api/table", api_table);
+// Routes
+app.use("/api/login", loginRouter);
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend/dist/index.html"));
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });
