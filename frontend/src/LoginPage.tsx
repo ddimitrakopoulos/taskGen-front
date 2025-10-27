@@ -1,112 +1,85 @@
 import React, { useState } from 'react';
 
-interface LoginPageProps {
-  onLogin: () => void;
-}
+const ApiTester: React.FC = () => {
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginResult, setLoginResult] = useState<string | null>(null);
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [taskUsername, setTaskUsername] = useState('');
+  const [tasksResult, setTasksResult] = useState<string | null>(null);
 
-  const [box1Data, setBox1Data] = useState<string>('');
-  const [box2Data, setBox2Data] = useState<string>('');
-  const [loading1, setLoading1] = useState(false);
-  const [loading2, setLoading2] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (username && password) {
-      onLogin();
+  // Call /api/login
+  const handleLogin = async () => {
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: loginUsername, password: loginPassword }),
+      });
+      const data = await res.json();
+      setLoginResult(JSON.stringify(data, null, 2));
+    } catch (err: any) {
+      setLoginResult('Error: ' + err.message);
     }
   };
 
-  // Improved fetch with error details
-  const handleBox1Fetch = async () => {
-    setLoading1(true);
-    setBox1Data('');
+  // Call /api/tasks
+  const handleGetTasks = async () => {
     try {
-      const res = await fetch('/api1');
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} - ${res.statusText}`);
-      }
+      const res = await fetch(`/api/tasks?username=${taskUsername}`);
       const data = await res.json();
-      setBox1Data(JSON.stringify(data, null, 2));
+      setTasksResult(JSON.stringify(data, null, 2));
     } catch (err: any) {
-      console.error('Error fetching Box 1:', err);
-      setBox1Data(`Error fetching Box 1:\n${err.message}`);
-    } finally {
-      setLoading1(false);
-    }
-  };
-
-  const handleBox2Fetch = async () => {
-    setLoading2(true);
-    setBox2Data('');
-    try {
-      const res = await fetch('/api2');
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} - ${res.statusText}`);
-      }
-      const data = await res.json();
-      setBox2Data(JSON.stringify(data, null, 2));
-    } catch (err: any) {
-      console.error('Error fetching Box 2:', err);
-      setBox2Data(`Error fetching Box 2:\n${err.message}`);
-    } finally {
-      setLoading2(false);
+      setTasksResult('Error: ' + err.message);
     }
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: '50px auto', padding: 20, border: '1px solid #ccc', borderRadius: 8 }}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
+    <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginTop: 50 }}>
+      {/* Login Box */}
+      <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 20, width: 300 }}>
+        <h3>Login API</h3>
         <input
           type="text"
           placeholder="Username"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
+          value={loginUsername}
+          onChange={e => setLoginUsername(e.target.value)}
           style={{ width: '100%', marginBottom: 10 }}
         />
         <input
           type="password"
           placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
+          value={loginPassword}
+          onChange={e => setLoginPassword(e.target.value)}
           style={{ width: '100%', marginBottom: 10 }}
         />
-        <button type="submit" style={{ width: '100%' }}>Login</button>
-      </form>
-
-      <hr style={{ margin: '20px 0' }} />
-
-      {/* Box 1 */}
-      <div style={{ marginBottom: 20 }}>
-        <button onClick={handleBox1Fetch} disabled={loading1} style={{ width: '100%', marginBottom: 10 }}>
-          {loading1 ? 'Loading Box 1...' : 'Fetch Box 1 Data'}
+        <button onClick={handleLogin} style={{ width: '100%', marginBottom: 10 }}>
+          Call /api/login
         </button>
-        <textarea
-          readOnly
-          value={box1Data}
-          placeholder="Box 1 data will appear here"
-          style={{ width: '100%', height: 100 }}
-        />
+        <pre style={{ background: '#f9f9f9', padding: 10, borderRadius: 4 }}>
+          {loginResult}
+        </pre>
       </div>
 
-      {/* Box 2 */}
-      <div>
-        <button onClick={handleBox2Fetch} disabled={loading2} style={{ width: '100%', marginBottom: 10 }}>
-          {loading2 ? 'Loading Box 2...' : 'Fetch Box 2 Data'}
-        </button>
-        <textarea
-          readOnly
-          value={box2Data}
-          placeholder="Box 2 data will appear here"
-          style={{ width: '100%', height: 100 }}
+      {/* Tasks Box */}
+      <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 20, width: 300 }}>
+        <h3>Tasks API</h3>
+        <input
+          type="text"
+          placeholder="Username"
+          value={taskUsername}
+          onChange={e => setTaskUsername(e.target.value)}
+          style={{ width: '100%', marginBottom: 10 }}
         />
+        <button onClick={handleGetTasks} style={{ width: '100%', marginBottom: 10 }}>
+          Call /api/tasks
+        </button>
+        <pre style={{ background: '#f9f9f9', padding: 10, borderRadius: 4 }}>
+          {tasksResult}
+        </pre>
       </div>
     </div>
   );
 };
 
-export default LoginPage;
+export default ApiTester;
