@@ -1,4 +1,4 @@
-name: Build and deploy monolithic Node.js app to Azure Web App - app-service-taskGen-dev
+name: Build and deploy dev
 
 on:
   push:
@@ -82,4 +82,5 @@ jobs:
             --name app-service-taskGen-dev \
             --resource-group rg-taskGen-dev-weu \
             --query "state"
+
 
