@@ -1,85 +1,69 @@
 import React, { useState } from 'react';
 
-const ApiTester: React.FC = () => {
-  const [loginUsername, setLoginUsername] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginResult, setLoginResult] = useState<string | null>(null);
+const LoginPage: React.FC = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [result, setResult] = useState<{ username: string; token: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const [taskUsername, setTaskUsername] = useState('');
-  const [tasksResult, setTasksResult] = useState<string | null>(null);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setResult(null);
 
-  // Call /api/login
-  const handleLogin = async () => {
     try {
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: loginUsername, password: loginPassword }),
+        body: JSON.stringify({ username, password }),
       });
-      const data = await res.json();
-      setLoginResult(JSON.stringify(data, null, 2));
-    } catch (err: any) {
-      setLoginResult('Error: ' + err.message);
-    }
-  };
 
-  // Call /api/tasks
-  const handleGetTasks = async () => {
-    try {
-      const res = await fetch(`/api/tasks?username=${taskUsername}`);
       const data = await res.json();
-      setTasksResult(JSON.stringify(data, null, 2));
+
+      if (!res.ok) {
+        setError(data.error || 'Login failed');
+        return;
+      }
+
+      setResult({ username: data.username, token: data.token });
     } catch (err: any) {
-      setTasksResult('Error: ' + err.message);
+      setError(err.message || 'Network error');
     }
   };
 
   return (
-    <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginTop: 50 }}>
-      {/* Login Box */}
-      <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 20, width: 300 }}>
-        <h3>Login API</h3>
+    <div style={{ maxWidth: 400, margin: '50px auto', padding: 20, border: '1px solid #ccc', borderRadius: 8 }}>
+      <h2>Login</h2>
+      <form onSubmit={handleSubmit}>
         <input
           type="text"
           placeholder="Username"
-          value={loginUsername}
-          onChange={e => setLoginUsername(e.target.value)}
+          value={username}
+          onChange={e => setUsername(e.target.value)}
           style={{ width: '100%', marginBottom: 10 }}
         />
         <input
           type="password"
           placeholder="Password"
-          value={loginPassword}
-          onChange={e => setLoginPassword(e.target.value)}
+          value={password}
+          onChange={e => setPassword(e.target.value)}
           style={{ width: '100%', marginBottom: 10 }}
         />
-        <button onClick={handleLogin} style={{ width: '100%', marginBottom: 10 }}>
-          Call /api/login
-        </button>
-        <pre style={{ background: '#f9f9f9', padding: 10, borderRadius: 4 }}>
-          {loginResult}
-        </pre>
-      </div>
+        <button type="submit" style={{ width: '100%' }}>Login</button>
+      </form>
 
-      {/* Tasks Box */}
-      <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 20, width: 300 }}>
-        <h3>Tasks API</h3>
-        <input
-          type="text"
-          placeholder="Username"
-          value={taskUsername}
-          onChange={e => setTaskUsername(e.target.value)}
-          style={{ width: '100%', marginBottom: 10 }}
-        />
-        <button onClick={handleGetTasks} style={{ width: '100%', marginBottom: 10 }}>
-          Call /api/tasks
-        </button>
-        <pre style={{ background: '#f9f9f9', padding: 10, borderRadius: 4 }}>
-          {tasksResult}
-        </pre>
-      </div>
+      <hr style={{ margin: '20px 0' }} />
+
+      {error && <div style={{ color: 'red' }}>{error}</div>}
+
+      {result && (
+        <div style={{ marginTop: 10, wordBreak: 'break-all' }}>
+          <strong>Username:</strong> {result.username} <br />
+          <strong>JWT Token:</strong> {result.token}
+        </div>
+      )}
     </div>
   );
 };
 
-export default ApiTester;
+export default LoginPage;
