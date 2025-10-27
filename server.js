@@ -1,22 +1,27 @@
-// server.js
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
 
-const api1 = require("./endpoints/api1/index.js");
-const api2 = require("./endpoints/api2/index.js");
+const api_login = require("./endpoints/login/server.js");
+const api_table = require("./endpoints/table/server.js");
 
 const app = express();
+app.use(express.json());
 
-app.use(express.static(path.join(__dirname, "frontend/dist")));
+// Serve static frontend if available
+const distPath = path.join(__dirname, "frontend/dist");
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+}
 
-app.use("/api1", api1);
-app.use("/api2", api2);
+// Attach routers
+app.use("/api/login", api_login);
+app.use("/api/table", api_table);
 
+// Catch-all for SPA routes
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend/dist/index.html"));
+  res.sendFile(path.join(distPath, "index.html"));
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
