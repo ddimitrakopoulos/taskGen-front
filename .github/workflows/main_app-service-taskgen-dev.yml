@@ -1,4 +1,4 @@
-name: Build and deploy dev with prebuilt node_modules
+name: Build and deploy dev
 
 on:
   push:
@@ -17,13 +17,17 @@ jobs:
       # 1️⃣ Checkout repo
       - uses: actions/checkout@v4
 
-      # 2️⃣ Setup Node.js (needed for frontend build)
+      # 2️⃣ Setup Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '~20'
 
-      # 3️⃣ Build frontend (inside ./frontend)
+      # 3️⃣ Unzip node_modules
+      - name: Unzip node_modules
+        run: unzip node_modules.zip -d .
+
+      # 4️⃣ Build frontend (inside ./frontend)
       - name: Build frontend
         run: |
           cd frontend
@@ -31,25 +35,15 @@ jobs:
           npm run build
           cd ..
 
-      # 4️⃣ Include prebuilt backend dependencies
-      - name: Verify node_modules.zip exists
-        run: |
-          if [ ! -f node_modules.zip ]; then
-            echo "node_modules.zip not found!"
-            exit 1
-          fi
+      # 5️⃣ Confirm build output
+      - name: Check dist folder
+        run: ls -la frontend/dist
 
-      # 5️⃣ Package everything for deployment
+      # 6️⃣ Package everything (server + built frontend + node_modules)
       - name: Package app for deployment
-        run: |
-          mkdir deploy_temp
-          cp -r server.js endpoints frontend/dist deploy_temp/
-          cp node_modules.zip deploy_temp/
-          cd deploy_temp
-          zip -r ../monolith-app.zip . > /dev/null
-          cd ..
+        run: zip -r monolith-app.zip . -x '*.git*' > /dev/null
 
-      # 6️⃣ Upload artifact
+      # 7️⃣ Upload artifact
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
@@ -73,7 +67,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # 3️⃣ Deploy to Azure Web App (zip deployment)
+      # 3️⃣ Deploy directly to Azure App Service
       - name: Deploy to Azure Web App
         run: |
           set +e
