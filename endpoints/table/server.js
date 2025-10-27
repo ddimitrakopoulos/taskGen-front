@@ -1,8 +1,8 @@
 // server.js
-import express from "express";
-import crypto from "crypto";
-import { DefaultAzureCredential } from "@azure/identity";
-import { TableClient } from "@azure/data-tables";
+const express = require("express");
+const crypto = require("crypto");
+const { DefaultAzureCredential } = require("@azure/identity");
+const { TableClient } = require("@azure/data-tables");
 
 const app = express();
 app.use(express.json());
@@ -109,3 +109,4 @@ app.get("/tasks", async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Task API listening on port ${PORT}`));
+
