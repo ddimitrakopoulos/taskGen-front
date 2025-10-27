@@ -1,18 +1,18 @@
-// endpoints/login/server.js
 const express = require("express");
 const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 const { DefaultAzureCredential } = require("@azure/identity");
 const { SecretClient } = require("@azure/keyvault-secrets");
 
 const router = express.Router();
 
-// Config
+// Key Vault setup
 const vaultName = process.env.KEY_VAULT_NAME || "kv-taskGen-2";
 const keyVaultUrl = `https://${vaultName}.vault.azure.net`;
 const credential = new DefaultAzureCredential();
 const secretClient = new SecretClient(keyVaultUrl, credential);
 
-// Constant-time compare
+// Constant-time string comparison
 function safeCompare(a, b) {
   const bufA = Buffer.from(String(a), "utf8");
   const bufB = Buffer.from(String(b), "utf8");
@@ -20,29 +20,47 @@ function safeCompare(a, b) {
   return crypto.timingSafeEqual(bufA, bufB);
 }
 
-// POST /api/login
 router.post("/", async (req, res) => {
   try {
     const { username, password } = req.body ?? {};
     if (typeof username !== "string" || typeof password !== "string") {
-      return res.status(400).json({ error: "username and password required" });
+      return res.status(400).json({ error: "username and password are required as strings" });
     }
 
-    const secretName = `${username}pass`;
-    let secret;
+    // Fetch user password from Key Vault
+    let userSecret;
     try {
-      secret = await secretClient.getSecret(secretName);
+      userSecret = await secretClient.getSecret(`${username}pass`);
     } catch (err) {
-      const notFound = err.statusCode === 404 || err.code === "SecretNotFound" || err.message?.includes("not found");
-      if (notFound) return res.status(404).json({ error: "Secret not found", secretName });
+      if (err.statusCode === 404 || err.code === "SecretNotFound") {
+        return res.status(404).json({ error: "User not found" });
+      }
       console.error("Key Vault error:", err);
-      return res.status(500).json({ error: "Key Vault error", detail: err.message });
+      return res.status(500).json({ error: "Error accessing Key Vault", detail: err.message });
     }
 
-    const match = safeCompare(secret.value, password);
-    return res.json({ match });
+    // Check password
+    const match = safeCompare(userSecret.value, password);
+    if (!match) {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+
+    // Fetch JWT secret
+    let jwtSecret;
+    try {
+      const secret = await secretClient.getSecret("jwtsecret");
+      jwtSecret = secret.value;
+    } catch (err) {
+      console.error("JWT secret error:", err);
+      return res.status(500).json({ error: "Error fetching JWT secret" });
+    }
+
+    // Generate JWT
+    const token = jwt.sign({ username }, jwtSecret, { expiresIn: "1h" });
+
+    return res.status(200).json({ username, token });
   } catch (ex) {
-    console.error(ex);
+    console.error("Unhandled error in login:", ex);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
