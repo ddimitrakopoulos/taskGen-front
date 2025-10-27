@@ -6,6 +6,7 @@
     "build": "npm run build:frontend"
   },
   "dependencies": {
+    "22": "^0.0.0",
     "@azure/data-tables": "^13.3.1",
     "@azure/identity": "^4.13.0",
     "@azure/keyvault-secrets": "^4.10.0",
@@ -19,3 +20,4 @@
   "author": "",
   "license": "ISC"
 }
+
