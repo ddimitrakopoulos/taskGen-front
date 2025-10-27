@@ -1,4 +1,4 @@
-// server.js (ES modules)
+// server.js (CommonJS)
 const express = require("express");
 const crypto = require("crypto");
 const { DefaultAzureCredential } = require("@azure/identity");
@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 
 // Configuration: set KEY_VAULT_NAME environment variable
-const vaultName = "kv-taskGen-2";
+const vaultName = process.env.KEY_VAULT_NAME || "kv-taskGen-2";
 if (!vaultName) {
   console.error("Environment variable KEY_VAULT_NAME is required (e.g. myvault)");
   process.exit(1);

@@ -2,15 +2,15 @@
 const express = require("express");
 const path = require("path");
 
-const api1 = require("./endpoints/api1/index.js");
-const api2 = require("./endpoints/api2/index.js");
+const api_login = require("./endpoints/login/server.js");
+const api_table = require("./endpoints/table/server.js");
 
 const app = express();
 
 app.use(express.static(path.join(__dirname, "frontend/dist")));
 
-app.use("/api1", api1);
-app.use("/api2", api2);
+app.use("/api/login", api_login);
+app.use("/api/table", api_table);
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/dist/index.html"));
