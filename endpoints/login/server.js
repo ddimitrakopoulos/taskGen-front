@@ -7,7 +7,7 @@ const { SecretClient } = require("@azure/keyvault-secrets");
 const router = express.Router();
 
 // Key Vault setup
-const vaultName = process.env.KEY_VAULT_NAME || "kv-taskGen-2";
+const vaultName = process.env.KEY_VAULT_NAME || "kv-taskgen-dev";
 const keyVaultUrl = `https://${vaultName}.vault.azure.net`;
 
 const credential = new DefaultAzureCredential();
@@ -67,3 +67,4 @@ router.post("/", async (req, res) => {
 });
 
 module.exports = router;
+
