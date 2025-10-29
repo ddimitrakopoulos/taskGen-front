@@ -1,9 +1,9 @@
-name: Build and deploy main
+name: Build and deploy dev
 
 on:
   push:
     branches:
-      - main
+      - dev
   workflow_dispatch:
 
 permissions:
@@ -82,5 +82,6 @@ jobs:
             --name app-service-taskGen-dev \
             --resource-group rg-taskGen-dev-weu \
             --query "state"
+
 
 

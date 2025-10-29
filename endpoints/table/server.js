@@ -86,6 +86,7 @@ router.post("/", authMiddleware, async (req, res) => {
       await tableClient.deleteEntity(entity.partitionKey, entity.rowKey);
     }
 
+    // Insert new tasks
     for (const t of tasks) {
       await tableClient.createEntity({
         partitionKey,
