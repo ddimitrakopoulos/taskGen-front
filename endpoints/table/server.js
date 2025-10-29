@@ -11,9 +11,9 @@ const router = express.Router();
 // -------------------------
 // 🔹 Azure configuration
 // -------------------------
-const storageAccountName = process.env.STORAGE_ACCOUNT_NAME || "storageacctabletaskgen";
-const tableName = process.env.TABLE_NAME || "tabletaskGen";
-const vaultName = process.env.KEY_VAULT_NAME || "kv-taskGen-2";
+const storageAccountName = process.env.STORAGE_ACCOUNT_NAME || "sttaskgendev";
+const tableName = process.env.TABLE_NAME || "tabletaskgendev";
+const vaultName = process.env.KEY_VAULT_NAME || "kv-taskgen-dev";
 
 const keyVaultUrl = `https://${vaultName}.vault.azure.net`;
 const credential = new DefaultAzureCredential();
@@ -125,3 +125,4 @@ router.get("/", authMiddleware, async (req, res) => {
 });
 
 module.exports = router;
+
