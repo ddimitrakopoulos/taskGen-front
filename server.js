@@ -15,7 +15,7 @@ app.use(express.static(path.join(__dirname, "frontend/dist")));
 
 // API routes
 app.use("/api/login", api_login);
-app.use("/api/table", api_table);
+app.use("/api/tasks", api_table);
 
 // SPA fallback
 app.get("*", (req, res) => {
@@ -26,3 +26,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
+
