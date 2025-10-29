@@ -16,7 +16,7 @@ if (fs.existsSync(distPath)) {
 
 // Attach routers
 app.use("/api/login", api_login);
-app.use("/api/table", api_table);
+app.use("/api/tasks", api_table);
 
 // Catch-all for SPA routes
 app.get("*", (req, res) => {
@@ -25,3 +25,4 @@ app.get("*", (req, res) => {
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+
