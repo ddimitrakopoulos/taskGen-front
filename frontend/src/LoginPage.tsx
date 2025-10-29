@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 
-interface LoginPageProps {
-  onLogin: () => void;
-}
+const ApiTester: React.FC = () => {
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginResult, setLoginResult] = useState<string | null>(null);
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [username, setUsername] = useState('');
@@ -74,4 +75,4 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   );
 };
 
-export default LoginPage;
+export default ApiTester;
