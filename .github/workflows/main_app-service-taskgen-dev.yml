@@ -1,4 +1,4 @@
-name: Build and deploy monolithic Node.js app to Azure Web App - app-service-taskGen-dev
+name: Build and deploy main
 
 on:
   push:
@@ -75,16 +75,12 @@ jobs:
             --name app-service-taskGen-dev \
             --resource-group rg-taskGen-dev-weu \
             --src-path monolith-app.zip \
-            --type zip \
-            --startup-file startup.sh
-
+            --type zip
           set -e
           # Verify deployment succeeded
           az webapp show \
             --name app-service-taskGen-dev \
             --resource-group rg-taskGen-dev-weu \
             --query "state"
-
-
 
 
