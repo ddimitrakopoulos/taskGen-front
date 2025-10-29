@@ -72,14 +72,14 @@ jobs:
         run: |
           set +e
           az webapp deploy \
-            --name app-service-taskGen-dev \
+            --name app-taskgen-dev \
             --resource-group rg-taskGen-dev-weu \
             --src-path monolith-app.zip \
             --type zip
           set -e
           # Verify deployment succeeded
           az webapp show \
-            --name app-service-taskGen-dev \
+            --name app-taskgen-dev \
             --resource-group rg-taskGen-dev-weu \
             --query "state"
 
